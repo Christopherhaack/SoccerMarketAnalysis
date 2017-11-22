@@ -86,17 +86,17 @@ def getPlayerStats(response):
     return lst
 class PlayerSpider(scrapy.Spider):
     name = "teams"     
-    filename = 'playerInfoAug2012.csv'
+    filename = 'playerInfo2009.csv'
     def start_requests(self):
         urls = [#'https://sofifa.com/leagues?v=18&e=158835&set=true'
                 #'https://sofifa.com/leagues?v=17&e=158466&set=true'
                 #'https://sofifa.com/leagues?v=16&e=158103&set=true'
                 #'https://sofifa.com/leagues?v=15&e=157739&set=true'
                 #'https://sofifa.com/leagues?v=14&e=157376&set=true'
-                'https://sofifa.com/leagues?v=13&e=157011&set=true'
+                #'https://sofifa.com/leagues?v=13&e=157011&set=true'
                 #'https://sofifa.com/leagues?v=12&e=156644&set=true'
                 #'https://sofifa.com/leagues?v=11&e=156279&set=true',
-                #'https://sofifa.com/leagues?v=10&e=155914&set=true',
+                'https://sofifa.com/leagues?v=10&e=155914&set=true',
                 #'https://sofifa.com/leagues?v=09&e=155549&set=true',
                 #'https://sofifa.com/leagues?v=08&e=155183&set=true',
                 #'https://sofifa.com/leagues?v=07&e=154818&set=true'
@@ -105,7 +105,7 @@ class PlayerSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parseLeagues)
     
     with open(filename, 'w') as f:
-            f.write(u'Name, Position, Game, Date, Team, Age, Birthday, Height, Weight, Overall, Potential, Crossing, Finishing, Heading accuracy, Short passing, Volleys, Dribbling, Curve, Free kick accuracy, Long passing, Ball control, Acceleration, Sprint speed, Agility, Reactions, Balance, Shot power, Jumping, Stamina, Strength, Long shots, Aggression, Interceptions, Positioning, Vision, Penalties, Composure, Marking, Standing tackle, Sliding tackle, GK diving, GK handling, GK kicking, GK positioning, GK reflexes, trait 1, trait 2, trait 3, trait4, trait 5\n')    
+            f.write(u'Name, P_id, Position, Game, Date, Team, Age, Birthday, Height, Weight, Overall, Potential, Crossing, Finishing, Heading accuracy, Short passing, Volleys, Dribbling, Curve, Free kick accuracy, Long passing, Ball control, Acceleration, Sprint speed, Agility, Reactions, Balance, Shot power, Jumping, Stamina, Strength, Long shots, Aggression, Interceptions, Positioning, Vision, Penalties, Composure, Marking, Standing tackle, Sliding tackle, GK diving, GK handling, GK kicking, GK positioning, GK reflexes, trait 1, trait 2, trait 3, trait4, trait 5\n')    
     
     def parseLeagues(self, response):
         val = response.xpath('//a').extract()
@@ -142,12 +142,14 @@ class PlayerSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parse)
     def parse(self, response):
         vals = []
+        p_id = response.url.split('/')[-1]
         getPlayerInfo(response)
         name, pos = getPlayerPosName(response)
         game, date = getGameDate(response)
         overall, pot, age, bday, height, weight = getPlayerInfo(response)
         team = getTeam(response).replace(',', '')
         vals.append(name)
+        vals.append(p_id)
         vals.append(pos)
         vals.append(game)
         vals.append(date)
