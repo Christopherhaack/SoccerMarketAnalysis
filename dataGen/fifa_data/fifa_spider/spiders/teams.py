@@ -46,7 +46,7 @@ def getPlayerInfo(response):
     val2 = []
     prev = ''
     for elem in root.iter():
-        if checkNumeric(elem.text):
+        if checkNumeric(elem.text) and (elem.text[0] != '+' and elem.text[0] != '-'):
             vals.append(elem.text)
         prev = elem.text
     potential = vals[1]
@@ -76,9 +76,10 @@ def getPlayerStats(response):
     for i, attrib in enumerate(val):
         
         root = etree.fromstring(attrib, parser)
+        
         for elem in root.iter():
             if i != 7:
-                if checkNumeric(elem.text):
+                if checkNumeric(elem.text) and (elem.text[0] != '+' and elem.text[0] != '-'):
                     lst.append(elem.text)
             else:
                 if elem.tag != 'h5' and elem.text != '\n':
@@ -86,7 +87,7 @@ def getPlayerStats(response):
     return lst
 class PlayerSpider(scrapy.Spider):
     name = "teams"     
-    filename = 'playerInfo2009.csv'
+    filename = 'playerInfo2011.csv'
     def start_requests(self):
         urls = [#'https://sofifa.com/leagues?v=18&e=158835&set=true'
                 #'https://sofifa.com/leagues?v=17&e=158466&set=true'
@@ -94,9 +95,9 @@ class PlayerSpider(scrapy.Spider):
                 #'https://sofifa.com/leagues?v=15&e=157739&set=true'
                 #'https://sofifa.com/leagues?v=14&e=157376&set=true'
                 #'https://sofifa.com/leagues?v=13&e=157011&set=true'
-                #'https://sofifa.com/leagues?v=12&e=156644&set=true'
+                'https://sofifa.com/leagues?v=12&e=156644&set=true'
                 #'https://sofifa.com/leagues?v=11&e=156279&set=true',
-                'https://sofifa.com/leagues?v=10&e=155914&set=true',
+                #'https://sofifa.com/leagues?v=10&e=155914&set=true',
                 #'https://sofifa.com/leagues?v=09&e=155549&set=true',
                 #'https://sofifa.com/leagues?v=08&e=155183&set=true',
                 #'https://sofifa.com/leagues?v=07&e=154818&set=true'
@@ -160,8 +161,11 @@ class PlayerSpider(scrapy.Spider):
         vals.append(weight)
         vals.append(overall)
         vals.append(pot)
+        stats = getPlayerStats(response)
+        if game != 'FIFA 18' and game != 'FIFA 17':
+            stats =  stats[:25] + ['0'] + stats[25:]
         
-        vals += getPlayerStats(response)
+        vals += stats        
         for i, val in enumerate(vals):
             # delete trailing and start spaces
             if val[0] == ' ':
