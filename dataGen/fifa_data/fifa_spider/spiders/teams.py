@@ -46,7 +46,7 @@ def getPlayerInfo(response):
     val2 = []
     prev = ''
     for elem in root.iter():
-        if checkNumeric(elem.text):
+        if checkNumeric(elem.text) and (elem.text[0] != '+' and elem.text[0] != '-'):
             vals.append(elem.text)
         prev = elem.text
     potential = vals[1]
@@ -76,9 +76,10 @@ def getPlayerStats(response):
     for i, attrib in enumerate(val):
         
         root = etree.fromstring(attrib, parser)
+        
         for elem in root.iter():
             if i != 7:
-                if checkNumeric(elem.text):
+                if checkNumeric(elem.text) and (elem.text[0] != '+' and elem.text[0] != '-'):
                     lst.append(elem.text)
             else:
                 if elem.tag != 'h5' and elem.text != '\n':
@@ -86,15 +87,15 @@ def getPlayerStats(response):
     return lst
 class PlayerSpider(scrapy.Spider):
     name = "teams"     
-    filename = 'playerInfoAug2012.csv'
+    filename = 'playerInfo2011.csv'
     def start_requests(self):
         urls = [#'https://sofifa.com/leagues?v=18&e=158835&set=true'
                 #'https://sofifa.com/leagues?v=17&e=158466&set=true'
                 #'https://sofifa.com/leagues?v=16&e=158103&set=true'
                 #'https://sofifa.com/leagues?v=15&e=157739&set=true'
                 #'https://sofifa.com/leagues?v=14&e=157376&set=true'
-                'https://sofifa.com/leagues?v=13&e=157011&set=true'
-                #'https://sofifa.com/leagues?v=12&e=156644&set=true'
+                #'https://sofifa.com/leagues?v=13&e=157011&set=true'
+                'https://sofifa.com/leagues?v=12&e=156644&set=true'
                 #'https://sofifa.com/leagues?v=11&e=156279&set=true',
                 #'https://sofifa.com/leagues?v=10&e=155914&set=true',
                 #'https://sofifa.com/leagues?v=09&e=155549&set=true',
@@ -105,7 +106,7 @@ class PlayerSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parseLeagues)
     
     with open(filename, 'w') as f:
-            f.write(u'Name, Position, Game, Date, Team, Age, Birthday, Height, Weight, Overall, Potential, Crossing, Finishing, Heading accuracy, Short passing, Volleys, Dribbling, Curve, Free kick accuracy, Long passing, Ball control, Acceleration, Sprint speed, Agility, Reactions, Balance, Shot power, Jumping, Stamina, Strength, Long shots, Aggression, Interceptions, Positioning, Vision, Penalties, Composure, Marking, Standing tackle, Sliding tackle, GK diving, GK handling, GK kicking, GK positioning, GK reflexes, trait 1, trait 2, trait 3, trait4, trait 5\n')    
+            f.write(u'Name, P_id, Position, Game, Date, Team, Age, Birthday, Height, Weight, Overall, Potential, Crossing, Finishing, Heading accuracy, Short passing, Volleys, Dribbling, Curve, Free kick accuracy, Long passing, Ball control, Acceleration, Sprint speed, Agility, Reactions, Balance, Shot power, Jumping, Stamina, Strength, Long shots, Aggression, Interceptions, Positioning, Vision, Penalties, Composure, Marking, Standing tackle, Sliding tackle, GK diving, GK handling, GK kicking, GK positioning, GK reflexes, trait 1, trait 2, trait 3, trait4, trait 5\n')    
     
     def parseLeagues(self, response):
         val = response.xpath('//a').extract()
@@ -142,12 +143,14 @@ class PlayerSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parse)
     def parse(self, response):
         vals = []
+        p_id = response.url.split('/')[-1]
         getPlayerInfo(response)
         name, pos = getPlayerPosName(response)
         game, date = getGameDate(response)
         overall, pot, age, bday, height, weight = getPlayerInfo(response)
         team = getTeam(response).replace(',', '')
         vals.append(name)
+        vals.append(p_id)
         vals.append(pos)
         vals.append(game)
         vals.append(date)
@@ -158,8 +161,11 @@ class PlayerSpider(scrapy.Spider):
         vals.append(weight)
         vals.append(overall)
         vals.append(pot)
+        stats = getPlayerStats(response)
+        if game != 'FIFA 18' and game != 'FIFA 17':
+            stats =  stats[:25] + ['0'] + stats[25:]
         
-        vals += getPlayerStats(response)
+        vals += stats        
         for i, val in enumerate(vals):
             # delete trailing and start spaces
             if val[0] == ' ':
