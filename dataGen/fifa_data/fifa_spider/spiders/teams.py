@@ -168,7 +168,7 @@ class PlayerSpider(scrapy.Spider):
                 vals[i] = val[:len(val) - 1]
         valString = u''
         for val in vals:
-            valString += unicode(val) + u','
+            valString += str(val) + u','
         valString += u'\n'
         with io.open(self.filename, 'a', encoding = 'utf-8') as f:
             f.write(valString)

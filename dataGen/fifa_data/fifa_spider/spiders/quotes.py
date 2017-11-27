@@ -58,7 +58,7 @@ def getPlayerPosName(response):
         
         vals.append(elem.text)
         prev = elem.text
-    print type(vals[0]), vals[0]
+    #print type(vals[0]), vals[0]
     return vals[0] , vals[3]
 def getPlayerStats(response):
     val = response.xpath('//div[@class="columns"]//div[@class="column col-3 mb-20"]').extract()
